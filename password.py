@@ -2,13 +2,13 @@ import argon2
 
 
 class Password:
-    def encrypt(password):
+    def encrypt(self, password):
         hasher=argon2.PasswordHasher()
         encrypted_password=hasher.hash(password)
         return encrypted_password
     
 
-    def decrypt(encrypted_password,password):
+    def decrypt(self, encrypted_password,password):
 
         hasher=argon2.PasswordHasher()
         try:
