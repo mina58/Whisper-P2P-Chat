@@ -5,9 +5,9 @@ ip = socket.gethostbyname(socket.gethostname())
 port = 12121
 
 server_thread = ServerMainThread(
-    ip=ip, 
+    ip=ip,
     port=port
-    )
+)
 server_thread.start()
 
 print(f"Server started on {ip}:{port}")
