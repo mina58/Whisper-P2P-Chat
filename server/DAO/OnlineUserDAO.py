@@ -20,3 +20,6 @@ class OnlineUserDAO:
 
     def drop_collection(self):
         self.db.online_users.drop()
+
+    def get_all_users(self):
+        return self.db.online_users.find()

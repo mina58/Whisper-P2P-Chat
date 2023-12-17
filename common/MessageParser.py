@@ -75,5 +75,6 @@ class MessageParser:
             return content
 
         except Exception as e:
+            print(input_message)
             print(f"Error parsing the message: {e}")
             return None

@@ -1,6 +1,7 @@
 import socket
 import logging
 import threading
+from server.Network.ConnectionManager import ConnectionManager
 
 
 class ServerMainThread(threading.Thread):
@@ -11,6 +12,7 @@ class ServerMainThread(threading.Thread):
         self.server_socket = None
         self.is_running = False
         self.logger = None
+        self.connection_manager = ConnectionManager()
 
     def configure_logger(self):
         self.logger = logging.getLogger("server-logger")
@@ -37,13 +39,9 @@ class ServerMainThread(threading.Thread):
                 client_socket, client_address = self.server_socket.accept()
                 self.logger.info(f"Connection from {client_address}")
 
-                data = client_socket.recv(1024)
-                self.logger.info(f"Received data: {data.decode('utf-8')}")
+                self.connection_manager.handle_connection(client_address,
+                                                          client_socket)
 
-                response = "Hello, I am up and running :)"
-                client_socket.send(response.encode("utf-8"))
-
-                client_socket.close()
             except Exception as e:
                 # Handle exceptions (e.g., if the server is stopped)
                 self.logger.error(f"Error: {e}")
