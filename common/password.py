@@ -18,20 +18,7 @@ class Password:
             return False
         
 
-if __name__ == "__main__":
-   password_manager = Password()
 
-   
-plaintext_password = "my_secure_password"
-encrypted_password = password_manager.encrypt(plaintext_password)
-print("Encrypted Password:", encrypted_password)
-
-  
-input_password = input("Enter password to verify: ")
-if password_manager.decrypt(encrypted_password, input_password):
-    print("Password is valid!")
-else:
-      print("Password is invalid.")
 
 
    
