@@ -1,4 +1,5 @@
 import curses
+from client.Service.ServerAPI import ServerAPI
 
 
 def welcome_screen(stdscr):
@@ -16,18 +17,6 @@ def welcome_screen(stdscr):
         return "login"
     else:
         return "welcome"
-
-# def get_user_input(stdscr, prompt, is_password=False):
-#     stdscr.addstr(0, 0, prompt, curses.color_pair(4) | curses.A_BOLD)
-#     curses.echo()
-#     if is_password:
-#         curses.noecho()
-#         user_input = stdscr.getstr(1, 0, 30).decode('utf-8')
-#         curses.echo()
-#     else:
-#         user_input = stdscr.getstr(1, 0, 30).decode('utf-8')
-#     curses.noecho()
-#     return user_input
 
 
 def signup_screen(stdscr):
@@ -50,8 +39,12 @@ def signup_screen(stdscr):
     confirm_password = stdscr.getstr(8, 0, 30).decode('utf-8')
 
     if password == confirm_password:
-        stdscr.addstr(
-            9, 0, "Account created successfully")
+        if api.create_account(username, password):
+            stdscr.addstr(
+                9, 0, "Account created successfully. Press any button to return.")
+        else:
+            stdscr.addstr(
+                9, 0, "Username is taken. Press any button to return.")
         stdscr.getch()
         return "welcome"
     else:
@@ -62,11 +55,8 @@ def signup_screen(stdscr):
 
 
 def login_screen(stdscr):
-
     stdscr.clear()
-
     stdscr.addstr(0, 8, "Log-In",  curses.color_pair(2) | curses.A_BOLD)
-
     stdscr.addstr(2, 0, "Enter your username: ",
                   curses.color_pair(4) | curses.A_BOLD)
     curses.echo()
@@ -77,7 +67,12 @@ def login_screen(stdscr):
     curses.noecho()
     password = stdscr.getstr(6, 0, 30).decode('utf-8')
 
-    return "home"
+    if api.login(username, password):
+        return "home"
+    stdscr.addstr(
+        9, 0, "Login failed. Press any key to go back.")
+    stdscr.getch()
+    return "welcome"
 
 
 def home_screen(stdscr):
@@ -112,7 +107,8 @@ def home_screen(stdscr):
         return "private_chat"
 
     elif choice == ord('6'):
-        return "welcome"
+        api.logout()
+        return None
 
     else:
         return "home"
@@ -143,7 +139,7 @@ def list_users_screen(stdscr):
     stdscr.clear()
     stdscr.addstr(0, 8, "List Users", curses.color_pair(4) | curses.A_BOLD)
 
-    online_users = ["Mohamed", "Moemen", "Mina", "Donia", "Wael Ghonim"]
+    online_users = api.list_users()
 
     for i, user in enumerate(online_users, start=2):
         stdscr.addstr(i, 0, f"{i-1}. {user}", curses.color_pair(2))
@@ -170,7 +166,8 @@ def main(stdscr):
 
     current_screen = "welcome"
 
-    while True:
+    is_running = True
+    while is_running:
         if current_screen == "welcome":
             current_screen = welcome_screen(stdscr)
         elif current_screen == "signup":
@@ -183,7 +180,13 @@ def main(stdscr):
             current_screen = list_rooms_screen(stdscr)
         elif current_screen == "list_users":
             current_screen = list_users_screen(stdscr)
+        else:
+            curses.endwin()
+            is_running = False
 
 
-if __name__ == "__main__":
-    curses.wrapper(main)
+server_ip = input("Enter server ip: ")
+server_port = 12121
+
+api = ServerAPI(server_ip, server_port)
+curses.wrapper(main)
