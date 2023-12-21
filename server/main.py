@@ -1,4 +1,4 @@
-from Network.ServerMainThread import ServerMainThread
+from server.Network.ServerMainThread import ServerMainThread
 import socket
 
 ip = socket.gethostbyname(socket.gethostname())
