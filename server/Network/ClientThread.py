@@ -18,9 +18,9 @@ class ClientThread(threading.Thread):
         self.account_service = AccountService()
 
     def configure_logger(self):
-        self.logger = logging.getLogger("client-logger")
+        self.logger = logging.getLogger("client-thread-logger")
         self.logger.setLevel(level=logging.INFO)
-        self.logger_file_handler = logging.FileHandler("client.log")
+        self.logger_file_handler = logging.FileHandler("client-thread.log")
         self.logger_formatter = logging.Formatter(
             '%(asctime)s - %(levelname)s - %(message)s')
         self.logger_file_handler.setFormatter(self.logger_formatter)
@@ -81,6 +81,7 @@ class ClientThread(threading.Thread):
 
     def logout(self, message):
         self.online_user_service.remove_online_user(message["username"])
+        self.stop()
 
     def list_users(self, message):
         response = ""
