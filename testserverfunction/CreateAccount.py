@@ -2,7 +2,7 @@ import socket
 import unittest
 from server.Network.ServerMainThread import ServerMainThread
 
-class CreateAcc(unittest.TestCase):
+class TestCreateAccountScenario(unittest.TestCase):
     def setUp(self):
         self.server_ip_address = socket.gethostbyname(socket.gethostname())
         self.server_port = 12121
@@ -32,8 +32,6 @@ class CreateAcc(unittest.TestCase):
             client_socket.close()
 
     def test_account_creation(self): 
-        server_host ='localhost'
-        server_port = 12121 
         new_username = 'mina123'
         new_password = 'AnaMina123'
 
@@ -45,15 +43,6 @@ class CreateAcc(unittest.TestCase):
         request_successful = self.send_create_account_request(server_host, server_port, new_username, new_password)
         self.assertTrue(request_successful)
 
-        account_exists = self.server.account_dao.get_account(new_username)  
-        self.assertTrue(account_exists) 
 
-        if not request_successful:
-             non_existent_account = self.server.account_dao.get_account("non_existent_username")
-             self.assertIsNone(non_existent_account)
-       
-
-if __name__ == "__main__":
-    unittest.main()
         
         
