@@ -33,3 +33,17 @@ class ServerAPI:
     def list_users(self):
         response = self.server_connection_manager.send_list_users_message()
         return response["users"]
+
+    def create_room(self, room_id):
+        response = self.server_connection_manager.send_create_room_message(
+            self.username, room_id)
+        return response["status_code"] == "1"
+
+    def leave_room(self, room_id):
+        self.server_connection_manager.send_leave_room_message(
+            self.username, room_id)
+
+    def join_room(self, room_id):
+        response = self.server_connection_manager.send_join_room_message(
+            self.username, room_id)
+        return response["status_code"] == "1"

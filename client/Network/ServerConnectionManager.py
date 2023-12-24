@@ -49,6 +49,24 @@ class ServerConnectionManager:
         response = MessageParser.parse_message(response_message)
         return response
 
+    def send_create_room_message(self, username, room_id):
+        message = f"CREATE_ROOM {username} {room_id}"
+        self.client_socket.sendall(message.encode("utf-8"))
+        response_message = self.client_socket.recv(1024).decode("utf-8")
+        response = MessageParser.parse_message(response_message)
+        return response
+
+    def send_join_room_message(self, username, room_id):
+        message = f"JOIN_ROOM {username} {room_id}"
+        self.client_socket.sendall(message.encode("utf-8"))
+        response_message = self.client_socket.recv(1024).decode("utf-8")
+        response = MessageParser.parse_message(response_message)
+        return response
+
+    def send_leave_room_message(self, username, room_id):
+        message = f"LEAVE_ROOM {username} {room_id}"
+        self.client_socket.sendall(message.encode("utf-8"))
+
     def disconnect(self):
         if self.client_socket:
             self.client_socket.close()

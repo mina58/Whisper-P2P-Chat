@@ -9,68 +9,67 @@ class MessageParser:
             if words[0] not in ['0', '1']:
                 message_type = words[0]
 
-                # User Requests & Peers Responses
-                if message_type in ["CREATE_ACC", "LOGIN", "LOGOUT", "CREATE_ROOM", "LIST_ROOMS",
-                                    "LIST_USERS", "KEEP", "CHAT", "BYE", "JOIN_ROOM", "LEAVE_ROOM",
-                                    "CHAT_REQUEST", "REQUEST_INFO", "PEER_INFO", "LEAVE"]:
-                    content = {"message_type": message_type}
-                    if message_type in ["CREATE_ACC", "LOGIN", "LOGOUT", "CREATE_ROOM",
-                                        "KEEP", "CHAT", "BYE", "JOIN_ROOM", "LEAVE_ROOM", "CHAT_REQUEST", "REQUEST_INFO", "PEER_INFO", "LEAVE"]:
-                        content["username"] = words[1]
+                if message_type == "CREATE_ACC":
+                    content["username"] = words[1]
+                    content["password"] = words[2]
+                elif message_type == "LOGIN":
+                    content["username"] = words[1]
+                    content["password"] = words[2]
+                elif message_type == "LOGOUT":
+                    content["username"] = words[1]
+                elif message_type == "CREATE_ROOM":
+                    content["username"] = words[1]
+                    content["room_id"] = words[2]
+                elif message_type == "JOIN_ROOM":
+                    content["username"] = words[1]
+                    content["room_id"] = words[2]
+                elif message_type == "REQUEST_INFO_ROOM":
+                    content["username"] = words[1]
+                    content["ip"] = words[2]
+                    content["port"] = words[3]
+                    content["room_id"] = words[4]
+                elif message_type == "PEER_INFO_ROOM":
+                    content["username"] = words[1]
+                    content["room_id"] = words[2]
+                elif message_type == "LEAVE_ROOM":
+                    content["username"] = words[1]
+                    content["room_id"] = words[2]
+                elif message_type == "LEFT_ROOM":
+                    content["username"] = words[1]
+                    content["room_id"] = words[2]
+                elif message_type == "KEEP":
+                    content["username"] = words[1]
+                elif message_type == "CHAT_REQUEST":
+                    content["sender"] = words[1]
+                    content["receiver"] = words[2]
+                elif message_type == "REQUEST_INFO_PRIVATE":
+                    content["username"] = words[1]
+                    content["ip"] = words[2]
+                    content["port"] = words[3]
+                elif message_type == "PEER_INFO_PRIVATE":
+                    content["username"] = words[1]
+                elif message_type == "CHAT_PRIVATE":
+                    content["username"] = words[1]
+                    content["message"] = " ".join(words[2:])
+                elif message_type == "BYE":
+                    content["username"] = words[1]
+                elif message_type == "CHAT_ROOM":
+                    content["username"] = words[1]
+                    content["room_id"] = words[2]
+                    content["message"] = " ".join(words[3:])
 
-                    if message_type in ["CREATE_ACC", "LOGIN"]:
-                        content["password"] = words[2]
-
-                    if message_type == "REQUEST_INFO":
-                        content["ip"] = words[2]
-                        content["port"] = int(words[3])
-                        if len(words) == 5:
-                            content["room_id"] = words[4]
-
-                    if message_type == "PEER_INFO" and len(words) == 3:
-                        content["room_id"] = words[2]
-
-                    if message_type == "CHAT":
-                        content["chat_message"] = " ".join(words[2:])
-
-                    if message_type == "JOIN_ROOM":
-                        content["room_id"] = words[2]
-
-                    if message_type == "LEAVE" and len(words) == 3:
-                        content["room_id"] = words[2]
+                content["message_type"] = message_type
 
             else:
                 message_type = words[1]
+                status_code = words[0]
+                content["message_type"] = message_type
+                content["status_code"] = status_code
 
-                # Server Responses
-                if words[0] == '1':
-                    if message_type == "ACC_CREATED":
-                        content = {
-                            "status_code": words[0], "message_type": message_type}
-                    elif message_type == "LOGIN_SUCC":
-                        content = {
-                            "status_code": words[0], "message_type": message_type}
-                elif words[0] == '0':
-                    if message_type == "USERNAME_TAKEN":
-                        content = {
-                            "status_code": words[0], "message_type": message_type}
-                    elif message_type == "AUTH_FAIL":
-                        content = {
-                            "status_code": words[0], "message_type": message_type}
-
-                if message_type in ["ROOM_CREATED", "ROOM_LIST", "USERS_LIST"]:
-                    content["status_code"] = words[0]
-                    content["message_type"] = words[1]
-                    if message_type == "ROOM_CREATED":
-                        content["room_id"] = words[2]
-                    elif message_type == "ROOM_LIST":
-                        content["rooms"] = words[2:]
-                    elif message_type == "USERS_LIST":
-                        content["users"] = words[2:]
-
-                if message_type in ["ROOM_UNAVAILABLE", "ALREADY_JOINED", "NOT_IN_ROOM", "USER_NOT_ONLINE"]:
-                    content = {
-                        "status_code": words[0], "message_type": message_type}
+                if message_type == "USERS_LIST":
+                    content["users"] = words[2:]
+                elif message_type == "ROOM_LIST":
+                    content["rooms"] = words[2:]
 
             return content
 

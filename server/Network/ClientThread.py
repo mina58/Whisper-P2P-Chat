@@ -3,6 +3,7 @@ import logging
 from common.MessageParser import MessageParser
 from server.Service.OnlineUserService import OnlineUserService
 from server.Service.AccountService import AccountService
+from server.Service.RoomService import RoomService
 
 
 class ClientThread(threading.Thread):
@@ -16,6 +17,7 @@ class ClientThread(threading.Thread):
         self.logger = None
         self.online_user_service = OnlineUserService()
         self.account_service = AccountService()
+        self.room_service = RoomService()
 
     def configure_logger(self):
         self.logger = logging.getLogger("client-thread-logger")
@@ -50,6 +52,14 @@ class ClientThread(threading.Thread):
                     self.logout(message)
                 elif message["message_type"] == "LIST_USERS":
                     self.list_users(message)
+                elif message["message_type"] == "CREATE_ROOM":
+                    self.create_room(message)
+                elif message["message_type"] == "JOIN_ROOM":
+                    self.join_room(message)
+                elif message["message_type"] == "LEAVE_ROOM":
+                    self.leave_room(message)
+                elif message["message_type"] == "LIST_ROOMS":
+                    self.list_rooms(message)
 
             except Exception as e:
                 self.logger.error(f"Error: {e}")
@@ -95,5 +105,37 @@ class ClientThread(threading.Thread):
 
         response = "1 USERS_LIST "
         response += " ".join(usernames)
+
+        self.client_socket.sendall(response.encode("utf-8"))
+
+    def create_room(self, message):
+        response = ""
+
+        if self.room_service.create_room(message["username"], message["room_id"]):
+            response = "1 ROOM_CREATED"
+        else:
+            response = "0 ROOM_ID_UNAVAILABLE"
+
+        self.client_socket.sendall(response.encode("utf-8"))
+
+    def join_room(self, message):
+        response = ""
+        
+        if not self.room_service.add_user(message["room_id"], message["username"]):
+            response = "0 ROOM_UNAVAILABLE"
+        else:
+            response = "1 JOINED_ROOM"
+            
+        self.client_socket.sendall(response.encode("utf-8"))
+
+    def leave_room(self, message):
+        self.room_service.remove_user(message["room_id"], message["username"])
+
+    def list_rooms(self, message):
+        response = ""
+
+        rooms = self.room_service.get_rooms()
+        response = "1 ROOMS_LIST "
+        response += " ".join([room["room_id"] for room in rooms])
 
         self.client_socket.sendall(response.encode("utf-8"))
