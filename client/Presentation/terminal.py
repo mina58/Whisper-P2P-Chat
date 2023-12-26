@@ -1,4 +1,6 @@
 import curses
+from client.Service.ServerAPI import ServerAPI
+import socket
 
 
 def welcome_screen(stdscr):
@@ -46,8 +48,9 @@ def signup_screen(stdscr):
     stdscr.addstr(7, 0, "Confirm your password: ", curses.color_pair(4) | curses.A_BOLD)
     confirm_password = stdscr.getstr(8, 0, 30).decode('utf-8')
     
-    if password == confirm_password:
-        return "home"
+    if password == confirm_password:   
+        #server_API.create_account(username, password)
+        return "home"                                                  
     else:
         stdscr.addstr(4, 0, "Passwords do not match. Press any key to go back.")
         stdscr.getch()
@@ -134,7 +137,7 @@ def list_users_screen(stdscr):
     stdscr.addstr(0, 8, "List Users", curses.color_pair(4) | curses.A_BOLD)
 
     
-    online_users = ["Mohamed", "Moemen", "Mina", "Donia", "Wael Ghonim"]
+    online_users = ["Mohamed", "Moemen", "Mina", "Donia", "Wael Ghonim", "Mohamed", "Moemen", "Mina", "Donia", "Wael Ghonim", "Mohamed", "Moemen", "Mina", "Donia", "Wael Ghonim", "Mohamed", "Moemen", "Mina", "Donia", "Wael Ghonim"]
 
     for i, user in enumerate(online_users, start=2):
         stdscr.addstr(i, 0, f"{i-1}. {user}", curses.color_pair(2))
@@ -176,10 +179,11 @@ def main(stdscr):
              current_screen = list_users_screen(stdscr)    
         
 
+ip = socket.gethostbyname(socket.gethostname())
+port = 12121
+server_API= ServerAPI(ip,port)
+
 if __name__ == "__main__":
     curses.wrapper(main)
-
-
-
 
 
