@@ -152,6 +152,66 @@ def list_users_screen(stdscr):
         return "home"
     else:
         return "list_users"
+    
+
+def create_room_screen(stdscr):
+    stdscr.clear()
+    stdscr.addstr(0, 8, "Create New Room", curses.color_pair(2) | curses.A_BOLD)
+    stdscr.addstr(2, 0, "Enter the room name: ", curses.color_pair(4) | curses.A_BOLD)
+    curses.echo()
+    room_name = stdscr.getstr(3, 0, 30).decode('utf-8')
+    curses.noecho()
+
+    if api.is_room_name_valid(room_name):   # function to check is room name is available or not in ServerAPI
+        api.create_room(room_name)          # function to create room in ServerAPI
+        stdscr.addstr(5, 0, f"Room '{room_name}' created successfully. Press any key to start chatting")
+        stdscr.getch()  
+        return "room_chatting"
+    else:
+        stdscr.addstr(5, 0, f"Invalid room name. Press any key to go back.")
+        stdscr.getch()
+        return "create_room"
+
+
+def join_room_screen(stdscr):
+    stdscr.clear()
+    stdscr.addstr(0, 8, "Join Room", curses.color_pair(2) | curses.A_BOLD)
+    stdscr.addstr(2, 0, "Enter the room name: ", curses.color_pair(4) | curses.A_BOLD)
+    curses.echo()
+    room_name = stdscr.getstr(3, 0, 30).decode('utf-8')
+    curses.noecho()
+
+    if api.is_room_name_valid(room_name):  #  function to check is room name is available or not in ServerAPI
+        stdscr.addstr(5, 0, f"Joining room '{room_name}'...")
+        stdscr.addstr(6, 0, "Press any key to start chatting")
+        stdscr.getch()
+        return "room_chatting"
+    else:
+        stdscr.addstr(5, 0, f"Room '{room_name}' is not available. Press any key to go back.")
+        stdscr.getch()
+        return "join_room"
+
+
+def private_chat_screen(stdscr):
+    stdscr.clear()
+    stdscr.addstr(0, 8, "Join Private Chat", curses.color_pair(2) | curses.A_BOLD)
+    stdscr.addstr(2, 0, "Enter the username: ", curses.color_pair(4) | curses.A_BOLD)
+    curses.echo()
+    other_username = stdscr.getstr(3, 0, 30).decode('utf-8')
+    curses.noecho()
+
+    online_users = api.list_users()
+
+    if other_username in online_users:  
+        stdscr.addstr(5, 0, f"Joining private chat with '{other_username}'...")
+        stdscr.addstr(6, 0, "Press any key to start chatting")
+        stdscr.getch()
+        return "private_chatting"  
+    else:
+        stdscr.addstr(5, 0, f"User '{other_username}' is not available. Press any key to go back.")
+        stdscr.getch()
+        return "private_chat"
+
 
 
 def main(stdscr):
@@ -180,6 +240,14 @@ def main(stdscr):
             current_screen = list_rooms_screen(stdscr)
         elif current_screen == "list_users":
             current_screen = list_users_screen(stdscr)
+        elif current_screen == "create_room":
+            current_screen = create_room_screen(stdscr)  
+        elif current_screen == "join_room":
+            current_screen = join_room_screen(stdscr)
+        elif current_screen == "private_chat":
+            current_screen = private_chat_screen(stdscr)
+            
+
         else:
             curses.endwin()
             is_running = False
