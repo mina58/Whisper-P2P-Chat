@@ -1,5 +1,6 @@
 import socket
 
+from hashlib import sha256
 from common.MessageParser import MessageParser
 from common.PasswordHasher import PasswordHasher
 
@@ -15,7 +16,10 @@ class ServerConnectionManager:
         self.client_socket.connect((self.server_ip, self.server_port))
 
     def send_create_account_message(self, username, password):
-        encrypted_password = self.password_hasher.encrypt(password)
+        sha = sha256()
+        sha.update(password.encode('utf-8'))
+        encrypted_password = sha.hexdigest()
+
         message = f"CREATE_ACC {username} {encrypted_password}"
         self.client_socket.sendall(message.encode("utf-8"))
         response_message = self.client_socket.recv(1024).decode("utf-8")
@@ -23,7 +27,10 @@ class ServerConnectionManager:
         return response
 
     def send_login_message(self, username, password):
-        encrypted_password = self.password_hasher.encrypt(password)
+        sha = sha256()
+        sha.update(password.encode('utf-8'))
+        encrypted_password = sha.hexdigest()
+
         message = f"LOGIN {username} {encrypted_password}"
         self.client_socket.sendall(message.encode("utf-8"))
         response_message = self.client_socket.recv(1024).decode("utf-8")
@@ -33,6 +40,7 @@ class ServerConnectionManager:
     def send_logout_message(self, username):
         message = f"LOGOUT {username}"
         self.client_socket.sendall(message.encode("utf-8"))
+        self.disconnect()
 
     def send_list_users_message(self):
         message = "LIST_USERS"
@@ -40,3 +48,8 @@ class ServerConnectionManager:
         response_message = self.client_socket.recv(1024).decode("utf-8")
         response = MessageParser.parse_message(response_message)
         return response
+
+    def disconnect(self):
+        if self.client_socket:
+            self.client_socket.close()
+            self.client_socket = None

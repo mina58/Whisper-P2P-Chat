@@ -33,7 +33,11 @@ class ClientThread(threading.Thread):
 
         while self.is_running:
             try:
-                request = self.client_socket.recv(1024).decode("utf-8")
+                request_bytes = self.client_socket.recv(1024)
+                request = request_bytes.decode("utf-8")
+                if request == "":
+                    self.stop()
+                    continue
                 self.logger.info(
                     f"Received request from {self.ip}:{self.port}: {request}")
                 message = MessageParser.parse_message(request)

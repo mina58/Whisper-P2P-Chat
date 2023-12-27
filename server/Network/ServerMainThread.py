@@ -6,7 +6,7 @@ from server.Network.ConnectionManager import ConnectionManager
 
 class ServerMainThread(threading.Thread):
     def __init__(self, ip, port):
-        super(ServerMainThread, self).__init__()
+        super(ServerMainThread, self).__init__(name="server-main")
         self.ip = ip
         self.port = port
         self.server_socket = None

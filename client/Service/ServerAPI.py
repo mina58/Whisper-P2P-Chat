@@ -31,6 +31,5 @@ class ServerAPI:
         self.server_connection_manager.send_logout_message(self.username)
 
     def list_users(self):
-        response = self.server_connection_manager.send_list_users_message(
-            self.username)
+        response = self.server_connection_manager.send_list_users_message()
         return response["users"]
