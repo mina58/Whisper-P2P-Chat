@@ -69,7 +69,7 @@ class MessageParser:
 
                 if message_type == "USERS_LIST":
                     content["users"] = words[2:]
-                elif message_type == "ROOM_LIST":
+                elif message_type == "ROOMS_LIST":
                     content["rooms"] = words[2:]
 
             return content

@@ -126,6 +126,11 @@ class ServerConnectionManager:
         self.client_socket.sendall(message.encode("utf-8"))
         self.logger.info(f"{self.client_socket.getsockname()} sent message: {message}")
 
+    def send_list_rooms_message(self):
+        message = "LIST_ROOMS"
+        self.client_socket.sendall(message.encode("utf-8"))
+        self.logger.info(f"{self.client_socket.getsockname()} sent message: {message}")
+
     def disconnect(self):
         self.server_connection_listener.stop()
         if self.server_connection_listener.is_alive():

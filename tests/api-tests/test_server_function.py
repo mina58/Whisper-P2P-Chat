@@ -38,6 +38,9 @@ class TestServerFunctions(unittest.TestCase):
         self.account_dao.drop_collection()
         self.online_user_dao.drop_collection()
         self.room_dao.drop_collection()
+        self.udp_port1 = 12345
+        self.udp_port2 = 12346
+        self.udp_port3 = 12347
 
     def tearDown(self):
         self.api.server_connection_manager.disconnect()
@@ -131,9 +134,9 @@ class TestServerFunctions(unittest.TestCase):
             self.api2.login(self.username2, self.password2)
             self.api3.login(self.username3, self.password3)
             self.api.create_room(self.room_id)
-            response = self.api2.join_room(self.room_id)
+            response = self.api2.join_room(self.room_id, self.udp_port2)
             self.assertTrue(response)
-            response = self.api3.join_room(self.room_id)
+            response = self.api3.join_room(self.room_id, self.udp_port3)
             self.assertTrue(response)
             users = self.room_dao.get_room(self.room_id)["users"]
             user_in_room = self.username2 in users and self.username3 in users
@@ -151,7 +154,7 @@ class TestServerFunctions(unittest.TestCase):
             self.api2.login(self.username2, self.password2)
 
             self.api.create_room(self.room_id)
-            self.api2.join_room(self.room_id)
+            self.api2.join_room(self.room_id, self.udp_port2)
 
             self.api2.leave_room(self.room_id)
             time.sleep(0.0001)
@@ -160,6 +163,44 @@ class TestServerFunctions(unittest.TestCase):
                 "users"]
             user_in_room = self.username2 in users
             self.assertFalse(user_in_room)
+        finally:
+            self.api.logout()
+            self.api2.logout()
+
+    def test_list_rooms(self):
+        self.api.create_account(self.username1, self.password1)
+        self.api2.create_account(self.username2, self.password2)
+        try:
+            self.api.login(self.username1, self.password1)
+            self.api2.login(self.username2, self.password2)
+
+            self.api.create_room(self.room_id)
+
+            time.sleep(0.1)
+
+            rooms = self.api2.list_rooms()
+            self.assertEqual(len(rooms), 1)
+        finally:
+            self.api.logout()
+            self.api2.logout()
+
+    def test_ended_room_list(self):
+        self.api.create_account(self.username1, self.password1)
+        self.api2.create_account(self.username2, self.password2)
+        try:
+            self.api.login(self.username1, self.password1)
+            self.api2.login(self.username2, self.password2)
+
+            self.api.create_room(self.room_id)
+            self.api2.join_room(self.room_id, self.udp_port2)
+
+            time.sleep(0.1)
+
+            self.api2.leave_room(self.room_id)
+            self.api.leave_room(self.room_id)
+
+            rooms = self.api2.list_rooms()
+            self.assertEqual(len(rooms), 0)
         finally:
             self.api.logout()
             self.api2.logout()
@@ -176,9 +217,9 @@ class TestServerFunctions(unittest.TestCase):
 
             self.api.create_room(self.room_id)
             time.sleep(0.25)
-            self.api2.join_room(self.room_id)
+            self.api2.join_room(self.room_id, self.udp_port2)
             time.sleep(0.25)
-            self.api3.join_room(self.room_id)
+            self.api3.join_room(self.room_id,  self.udp_port3)
             time.sleep(0.25)
         finally:
             self.api.logout()

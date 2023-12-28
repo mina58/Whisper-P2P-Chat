@@ -37,6 +37,11 @@ class ServerAPI:
         response = self.server_connection_manager.get_response()
         return response["users"]
 
+    def list_rooms(self):
+        self.server_connection_manager.send_list_rooms_message()
+        response = self.server_connection_manager.get_response()
+        return response["rooms"]
+
     def create_room(self, room_id):
         self.server_connection_manager.send_create_room_message(
             self.username, room_id)
