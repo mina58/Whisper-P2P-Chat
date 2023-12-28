@@ -23,6 +23,7 @@ class MessageParser:
                 elif message_type == "JOIN_ROOM":
                     content["username"] = words[1]
                     content["room_id"] = words[2]
+                    content["udp_port"] = words[3]
                 elif message_type == "REQUEST_INFO_ROOM":
                     content["username"] = words[1]
                     content["ip"] = words[2]

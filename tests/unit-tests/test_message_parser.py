@@ -12,6 +12,7 @@ class TestMessageParser(unittest.TestCase):
         self.chat_message = "Hello, world!"
         self.ip = "127.0.0.1"
         self.port = "12345"
+        self.udp_port = "54321"
 
     def test_create_acc(self):
         message = f"CREATE_ACC {self.username} {self.password}"
@@ -127,11 +128,12 @@ class TestMessageParser(unittest.TestCase):
         self.assertEqual(content["username"], self.username)
 
     def test_join_room(self):
-        message = f"JOIN_ROOM {self.username} {self.room_id}"
+        message = f"JOIN_ROOM {self.username} {self.room_id} {self.udp_port}"
         content = MessageParser.parse_message(message)
         self.assertEqual(content["message_type"], "JOIN_ROOM")
         self.assertEqual(content["username"], self.username)
         self.assertEqual(content["room_id"], self.room_id)
+        self.assertEqual(content["udp_port"], self.udp_port)
 
     def test_request_info_room(self):
         message = f"REQUEST_INFO_ROOM {self.username} {self.ip} {self.port} {self.room_id}"
