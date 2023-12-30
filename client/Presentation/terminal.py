@@ -93,7 +93,7 @@ def signup_screen(stdscr):
 
             stdscr.addstr(
                 9, 0, "Account created successfully. Press any button to return.")
-            return "home"
+            return "welcome"
 
         else:
             stdscr.addstr(
@@ -110,6 +110,8 @@ def signup_screen(stdscr):
 
 
 def login_screen(stdscr):
+    global my_username
+
     stdscr.clear()
     stdscr.addstr(0, 8, "Log-In", curses.color_pair(2) | curses.A_BOLD)
     stdscr.addstr(2, 0, "Enter your username: ",
@@ -173,25 +175,21 @@ def list_rooms_screen(stdscr):
     stdscr.clear()
     stdscr.addstr(0, 8, "List Rooms", curses.color_pair(4) | curses.A_BOLD)
 
-    available_rooms = api.list_rooms()
+    available_rooms = api.list_rooms()  # ["room_1", "room_2", ...]
 
-    for i, room_name in enumerate(available_rooms, start=2):
-        stdscr.addstr(
-            i, 0, f"{i-1}. Room Name: {room_name}", curses.color_pair(2))
+    for i, room in enumerate(available_rooms, start=1):
+        stdscr.addstr(i, 0, f"{i}. {room}")
 
-    stdscr.addstr(len(available_rooms) + 5, 0, "Press 0 to go back to home.")
     stdscr.refresh()
 
     choice = stdscr.getch()
-    if choice == ord('0'):
-        return "home"
-    else:
-        return "list_rooms"
+    return "home"
 
 # List users screen
 
 
 def list_users_screen(stdscr):
+    stdscr.scrollok(True)
     stdscr.clear()
     stdscr.addstr(0, 8, "List Users", curses.color_pair(4) | curses.A_BOLD)
 
@@ -213,8 +211,7 @@ def list_users_screen(stdscr):
 
 
 def create_room_screen(stdscr):
-
-    chat_service = ChatService(current_room, my_username, to_chat_queue)
+    global chat_service, current_room, to_chat_queue, my_username
 
     stdscr.clear()
     stdscr.addstr(0, 8, "Create New Room",
@@ -223,15 +220,18 @@ def create_room_screen(stdscr):
                   curses.color_pair(4) | curses.A_BOLD)
     curses.echo()
     room_name = stdscr.getstr(3, 0, 30).decode('utf-8')
-    current_room = room_name
     curses.noecho()
 
+    chat_service = ChatService(room_name, my_username, to_chat_queue)
+
     if api.create_room(room_name):
+        current_room = room_name
         stdscr.addstr(
             5, 0, f"Room '{room_name}' created successfully. Press any key to start chatting")
         stdscr.getch()
         return "room_chatting"
     else:
+        chat_service.end_chat()
         stdscr.addstr(5, 0, f"Invalid room name. Press any key to go back.")
         stdscr.getch()
         return "create_room"
@@ -240,9 +240,7 @@ def create_room_screen(stdscr):
 
 
 def join_room_screen(stdscr):
-
-    chat_service = ChatService(current_room, my_username, to_chat_queue)
-    udp_port = chat_service.get_address()
+    global chat_service, current_room, to_chat_queue, my_username, udp_port
 
     stdscr.clear()
     stdscr.addstr(0, 8, "Join Room", curses.color_pair(2) | curses.A_BOLD)
@@ -250,10 +248,13 @@ def join_room_screen(stdscr):
                   curses.color_pair(4) | curses.A_BOLD)
     curses.echo()
     room_name = stdscr.getstr(3, 0, 30).decode('utf-8')
-    current_room = room_name
     curses.noecho()
 
+    chat_service = ChatService(room_name, my_username, to_chat_queue)
+    udp_port = chat_service.get_address()[1]
+
     if api.join_room(room_name, udp_port):  # fe salfa hena    udp_port
+        current_room = room_name
         stdscr.addstr(5, 0, f"Joining room '{room_name}'...")
         stdscr.addstr(6, 0, "Press any key to start chatting")
         stdscr.getch()
@@ -262,91 +263,80 @@ def join_room_screen(stdscr):
         stdscr.addstr(
             5, 0, f"Room '{room_name}' is not available. Press any key to go back.")
         stdscr.getch()
+        chat_service.end_chat()
         return "join_room"
 
 
-'''
-def private_chat_screen(stdscr):
-    stdscr.clear
-    stdscr.addstr(0, 8, "Join Private Chat",
-                  curses.color_pair(2) | curses.A_BOLD)
-    stdscr.addstr(2, 0, "Enter the username: ",
-                  curses.color_pair(4) | curses.A_BOLD)
-    curses.echo()
-    other_username = stdscr.getstr(3, 0, 30).decode('utf-8')
-    curses.noecho()
-
-    online_users = api.list_users()
-
-    if other_username in online_users:
-        stdscr.addstr(5, 0, f"Joining private chat with '{other_username}'...")
-        stdscr.addstr(6, 0, "Press any key to start chatting")
-        stdscr.getch()
-        return "private_chatting"
-    else:
-        stdscr.addstr(
-            5, 0, f"User '{other_username}' is not available. Press any key to go back.")
-        stdscr.getch()
-        return "private_chat"
-
-'''
-
-
 def room_chatting_screen(stdscr):
+    global chat_service, chat_messages
+
+    is_chatting = True
+    stdscr.scrollok(True)
+    message = ""
+
     def get_messages_thread():
-        while True:
-            messages = chat_service.get_messages()
-            for message in messages:
-                to_chat_queue.put(message)
+        current_line = 0
+        while is_chatting:
+            chat_messages = chat_service.get_messages()
+            for i, msg in enumerate(chat_messages, start=2):
+                stdscr.addstr(current_line + i, 0,
+                              msg, curses.color_pair(2))
+                stdscr.refresh()
+
+            stdscr.move(stdscr.getmaxyx()[0] - 1, len(message) + 1)
+            current_line += len(chat_messages)
+            stdscr.refresh()
 
             time.sleep(0.1)
 
-    def send_message_thread():
-        while True:
-            message = stdscr.get_wch()
-            if message is not curses.ERR:
-                chat_service.send_message(message)
-               # to_chat_queue.put(message)
-
-            time.sleep(0.1)
-
-    # Create and start the threads
     get_messages_thread = threading.Thread(target=get_messages_thread)
-    send_message_thread = threading.Thread(target=send_message_thread)
 
     get_messages_thread.start()
-    send_message_thread.start()
 
-    stdscr.clear()
     stdscr.addstr(0, 8, f"Room: {current_room}",
                   curses.color_pair(2) | curses.A_BOLD)
-    stdscr.addstr(2, 0, "Press 'q' to exit the room.",
-                  curses.color_pair(4) | curses.A_BOLD)
 
-    stdscr.nodelay(1)
+    stdscr.clear()
+    curses.curs_set(1)  # Show the cursor
+    curses.echo()  # Enable echoing
+
+    input_win_height = 10
+    input_win = curses.newwin(
+        1, curses.COLS, curses.LINES - input_win_height, 0)
+
+    input_win.refresh()
+
+    rows, cols = stdscr.getmaxyx()
+    stdscr.move(rows - 1, 0)
 
     while True:
-        key = stdscr.getch()
-        if key == ord('q'):  # press q to exit room
-
-            chat_service.end_chat()
-            get_messages_thread.join()
-            send_message_thread.join()
-            return "home"
-
-        # Display messages
-        stdscr.clear()
-        stdscr.addstr(0, 8, f"Room: {current_room}",
-                      curses.color_pair(2) | curses.A_BOLD)
-        stdscr.addstr(2, 0, "Press 'q' to exit the room.",
-                      curses.color_pair(4) | curses.A_BOLD)
-
-        for i, msg in enumerate(to_chat_queue, start=4):
-            stdscr.addstr(i, 0, msg, curses.color_pair(2))
-
-        # stdscr.addstr(curses.LINES - 1, 0, "Your message: ")
-
         stdscr.refresh()
+
+        char = stdscr.getch()
+
+        if char == curses.KEY_BACKSPACE or char == 127:
+            message = message[:-1]
+            input_win.clear()
+            input_win.addstr(0, 0, message)
+            input_win.refresh()
+        elif char == curses.KEY_ENTER or char == 10 or char == 13:
+            chat_service.send_message(message)
+            message = ""
+            stdscr.move(rows - 2, 0)
+            stdscr.clrtoeol()
+            input_win.clear()
+            input_win = curses.newwin(1, curses.COLS - 1, curses.LINES - 1, 0)
+            input_win.refresh()
+        elif char == 27:
+            is_chatting = False
+            chat_service.end_chat()
+            api.leave_room(current_room)
+            return "home"
+        else:
+            message += chr(char)
+
+        rows, cols = stdscr.getmaxyx()
+        stdscr.move(rows - 1, len(message))
 
 
 def main(stdscr):

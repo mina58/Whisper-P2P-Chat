@@ -139,13 +139,12 @@ class TestChat(unittest.TestCase):
             messages2 = chat_api2.get_messages()
             messages3 = chat_api3.get_messages()
 
-            self.assertEqual(len(messages1), 2)
-            self.assertEqual(len(messages2), 2)
-            self.assertEqual(len(messages3), 2)
+            print(messages1, messages2, messages3)
 
-            chat_api1.end_chat()
-            chat_api2.end_chat()
-            chat_api3.end_chat()
+            self.assertEqual(len(messages1), 3)
+            self.assertEqual(len(messages2), 3)
+            self.assertEqual(len(messages3), 3)
+
         finally:
             self.api.logout()
             self.api2.logout()

@@ -45,7 +45,8 @@ class ChatThread(threading.Thread):
                     address = None
                     if self.to_chat_queue.empty():
                         data, address = self.udp_socket.recvfrom(1024)
-                        self.logger.info(f"{self.username} received a message from {address}: {data.decode()}")
+                        self.logger.info(
+                            f"{self.username} received a message from {address}: {data.decode()}")
                         message = MessageParser.parse_message(data.decode())
                     else:
                         message = self.to_chat_queue.get()
@@ -63,6 +64,7 @@ class ChatThread(threading.Thread):
 
     def broadcast_message(self, message):
         message = f"CHAT_ROOM {self.username} {self.room_id} {message}"
+        # self.logger.info(f"broadcasting {message} to {[user['username'] for user in self.users_in_room]}")
         for username, address in self.users_in_room:
             self.udp_socket.sendto(message.encode("utf-8"), address)
 
@@ -84,7 +86,8 @@ class ChatThread(threading.Thread):
         response = f"PEER_INFO_ROOM {self.username} {self.room_id}"
         address = (message["ip"], int(message["port"]))
         self.udp_socket.sendto(response.encode("utf-8"), address)
-        self.logger.info(f"{self.username} sent to {address} message: {response}")
+        self.logger.info(
+            f"{self.username} sent to {address} message: {response}")
         self.users_in_room.add((message["username"], address))
 
     def handle_leave_room(self, message):
