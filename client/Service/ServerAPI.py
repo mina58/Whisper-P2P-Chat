@@ -43,6 +43,8 @@ class ServerAPI:
         return response["rooms"]
 
     def create_room(self, room_id):
+        if room_id == "":
+            return False
         self.server_connection_manager.send_create_room_message(
             self.username, room_id)
         response = self.server_connection_manager.get_response()
@@ -53,6 +55,8 @@ class ServerAPI:
             self.username, room_id)
 
     def join_room(self, room_id, udp_port):
+        if room_id == "":
+            return False
         self.server_connection_manager.send_join_room_message(
             self.username, room_id, udp_port)
         response = self.server_connection_manager.get_response()

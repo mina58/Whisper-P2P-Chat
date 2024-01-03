@@ -54,6 +54,7 @@ class ServerConnectionManager:
 
         def stop(self):
             self.is_running = False
+            self.is_listening = False
 
     def __init__(self, server_ip, server_port, name, to_chat_queue):
         self.server_ip = server_ip
