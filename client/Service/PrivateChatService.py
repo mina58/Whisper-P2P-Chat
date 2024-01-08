@@ -78,6 +78,7 @@ class PrivateChatService:
         if chat_thread:
             self.private_chat_thread = chat_thread
             self.private_chat_thread.start()
+            self.is_connected = True
             return True
         else:
             return False
