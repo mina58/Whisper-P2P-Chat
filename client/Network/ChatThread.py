@@ -10,7 +10,7 @@ class ChatThread(threading.Thread):
     """
 
     def __init__(self, room_id, username, to_chat_queue):
-        super().__init__()
+        super(ChatThread, self).__init__()
         self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.ip = (socket.gethostbyname(socket.gethostname()))
         self.udp_socket.bind((self.ip, 0))
@@ -63,10 +63,11 @@ class ChatThread(threading.Thread):
                 continue
 
     def broadcast_message(self, message):
-        message = f"CHAT_ROOM {self.username} {self.room_id} {message}"
-        # self.logger.info(f"broadcasting {message} to {[user['username'] for user in self.users_in_room]}")
-        for username, address in self.users_in_room:
-            self.udp_socket.sendto(message.encode("utf-8"), address)
+        with self.lock:
+            message = f"CHAT_ROOM {self.username} {self.room_id} {message}"
+            # self.logger.info(f"broadcasting {message} to {[user['username'] for user in self.users_in_room]}")
+            for username, address in self.users_in_room:
+                self.udp_socket.sendto(message.encode("utf-8"), address)
 
     def get_address(self):
         return self.ip, self.udp_port

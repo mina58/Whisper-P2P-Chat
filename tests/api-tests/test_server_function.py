@@ -41,6 +41,9 @@ class TestServerFunctions(unittest.TestCase):
         self.udp_port1 = 12345
         self.udp_port2 = 12346
         self.udp_port3 = 12347
+        self.tcp_port1 = "12348"
+        self.tcp_port2 = "12349"
+        self.tcp_port3 = "12350"
 
     def tearDown(self):
         self.api.server_connection_manager.disconnect()
@@ -62,7 +65,7 @@ class TestServerFunctions(unittest.TestCase):
     def test_login(self):
         try:
             self.api.create_account(self.username1, self.password1)
-            response = self.api.login(self.username1, self.password1)
+            response = self.api.login(self.username1, self.password1, self.tcp_port1)
             self.assertTrue(response)
             time.sleep(0.0001)
             user_account = self.online_user_dao.get_user(self.username1)
@@ -72,12 +75,12 @@ class TestServerFunctions(unittest.TestCase):
 
     def test_invalid_login(self):
         self.api.create_account(self.username1, self.password1)
-        response = self.api.login(self.username1, "invalid_password")
+        response = self.api.login(self.username1, "invalid_password", self.tcp_port1)
         self.assertFalse(response)
 
     def test_logout(self):
         self.api.create_account(self.username1, self.password1)
-        self.api.login(self.username1, self.password1)
+        self.api.login(self.username1, self.password1, self.tcp_port1)
         self.api.logout()
         user_account = self.online_user_dao.get_user(self.username1)
         self.assertIsNone(user_account)
@@ -86,8 +89,8 @@ class TestServerFunctions(unittest.TestCase):
         self.api.create_account(self.username1, self.password1)
         self.api2.create_account(self.username2, self.password2)
         try:
-            self.api.login(self.username1, self.password1)
-            self.api2.login(self.username2, self.password2)
+            self.api.login(self.username1, self.password1, self.tcp_port1)
+            self.api2.login(self.username2, self.password2, self.tcp_port2)
             online_users = self.api.list_users()
             self.assertEqual(len(online_users), 2)
         finally:
@@ -97,7 +100,7 @@ class TestServerFunctions(unittest.TestCase):
     def test_create_room_success(self):
         self.api.create_account(self.username1, self.password1)
         try:
-            self.api.login(self.username1, self.password1)
+            self.api.login(self.username1, self.password1, self.tcp_port1)
             response = self.api.create_room(self.room_id)
             self.assertTrue(response)
 
@@ -110,7 +113,7 @@ class TestServerFunctions(unittest.TestCase):
     def test_create_room_failure_existing_room(self):
         self.api.create_account(self.username1, self.password1)
         try:
-            self.api.login(self.username1, self.password1)
+            self.api.login(self.username1, self.password1, self.tcp_port1)
 
             # Create a room with the same ID
             self.api.create_room(self.room_id)
@@ -130,9 +133,9 @@ class TestServerFunctions(unittest.TestCase):
         self.api2.create_account(self.username2, self.password2)
         self.api3.create_account(self.username3, self.password3)
         try:
-            self.api.login(self.username1, self.password1)
-            self.api2.login(self.username2, self.password2)
-            self.api3.login(self.username3, self.password3)
+            self.api.login(self.username1, self.password1, self.tcp_port1)
+            self.api2.login(self.username2, self.password2, self.tcp_port2)
+            self.api3.login(self.username3, self.password3, self.tcp_port3)
             self.api.create_room(self.room_id)
             response = self.api2.join_room(self.room_id, self.udp_port2)
             self.assertTrue(response)
@@ -150,8 +153,8 @@ class TestServerFunctions(unittest.TestCase):
         self.api.create_account(self.username1, self.password1)
         self.api2.create_account(self.username2, self.password2)
         try:
-            self.api.login(self.username1, self.password1)
-            self.api2.login(self.username2, self.password2)
+            self.api.login(self.username1, self.password1, self.tcp_port1)
+            self.api2.login(self.username2, self.password2, self.tcp_port2)
 
             self.api.create_room(self.room_id)
             self.api2.join_room(self.room_id, self.udp_port2)
@@ -171,8 +174,8 @@ class TestServerFunctions(unittest.TestCase):
         self.api.create_account(self.username1, self.password1)
         self.api2.create_account(self.username2, self.password2)
         try:
-            self.api.login(self.username1, self.password1)
-            self.api2.login(self.username2, self.password2)
+            self.api.login(self.username1, self.password1, self.tcp_port1)
+            self.api2.login(self.username2, self.password2, self.tcp_port2)
 
             self.api.create_room(self.room_id)
 
@@ -188,8 +191,8 @@ class TestServerFunctions(unittest.TestCase):
         self.api.create_account(self.username1, self.password1)
         self.api2.create_account(self.username2, self.password2)
         try:
-            self.api.login(self.username1, self.password1)
-            self.api2.login(self.username2, self.password2)
+            self.api.login(self.username1, self.password1, self.tcp_port1)
+            self.api2.login(self.username2, self.password2, self.tcp_port2)
 
             self.api.create_room(self.room_id)
             self.api2.join_room(self.room_id, self.udp_port2)
@@ -211,9 +214,9 @@ class TestServerFunctions(unittest.TestCase):
         self.api3.create_account(self.username3, self.password3)
 
         try:
-            self.api.login(self.username1, self.password1)
-            self.api2.login(self.username2, self.password2)
-            self.api3.login(self.username3, self.password3)
+            self.api.login(self.username1, self.password1, self.tcp_port1)
+            self.api2.login(self.username2, self.password2, self.tcp_port2)
+            self.api3.login(self.username3, self.password3, self.tcp_port3)
 
             self.api.create_room(self.room_id)
             time.sleep(0.25)
@@ -225,3 +228,36 @@ class TestServerFunctions(unittest.TestCase):
             self.api.logout()
             self.api2.logout()
             self.api3.logout()
+
+    def test_request_info_private_user_available(self):
+        self.api.create_account(self.username1, self.password1)
+        self.api2.create_account(self.username2, self.password2)
+
+        try:
+            self.api.login(self.username1, self.password1, self.tcp_port1)
+            self.api2.login(self.username2, self.password2, self.tcp_port2)
+
+            response = self.api2.request_peer_info(self.username1)
+            self.assertTrue(response)
+            self.assertEqual(response["username"], self.username1)
+            self.assertEqual(response["port"], self.tcp_port1)
+
+        finally:
+            self.api.logout()
+            self.api2.logout()
+
+    def test_request_info_private_user_unavailable(self):
+        self.api.create_account(self.username1, self.password1)
+        self.api2.create_account(self.username2, self.password2)
+
+        try:
+            self.api.login(self.username1, self.password1, self.tcp_port1)
+            self.api2.login(self.username2, self.password2, self.tcp_port2)
+
+            response = self.api2.request_peer_info(self.username3)
+            self.assertFalse(response)
+
+        finally:
+            self.api.logout()
+            self.api2.logout()
+            

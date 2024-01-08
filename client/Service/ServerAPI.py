@@ -8,9 +8,9 @@ class ServerAPI:
         self.server_connection_manager.connect_to_server()
         self.username = None
 
-    def login(self, username, password):
+    def login(self, username, password, tcp_port):
         self.server_connection_manager.send_login_message(
-            username, password)
+            username, password, tcp_port)
         response = self.server_connection_manager.get_response()
         if response["status_code"] == "1":
             self.username = username
@@ -61,3 +61,11 @@ class ServerAPI:
             self.username, room_id, udp_port)
         response = self.server_connection_manager.get_response()
         return response["status_code"] == "1"
+
+    def request_peer_info(self, username):
+        self.server_connection_manager.send_request_info_private_message(username)
+        response = self.server_connection_manager.get_response()
+        if response["status_code"] == "1":
+            return response
+        else:
+            return False

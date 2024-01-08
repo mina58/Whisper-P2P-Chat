@@ -93,11 +93,11 @@ class ServerConnectionManager:
         self.client_socket.sendall(message.encode("utf-8"))
         self.logger.info(f"{self.client_socket.getsockname()} sent message: {message}")
 
-    def send_login_message(self, username, password):
+    def send_login_message(self, username, password, tcp_port):
         sha = sha256()
         sha.update(password.encode('utf-8'))
         encrypted_password = sha.hexdigest()
-        message = f"LOGIN {username} {encrypted_password}"
+        message = f"LOGIN {username} {encrypted_password} {tcp_port}"
         self.client_socket.sendall(message.encode("utf-8"))
         self.logger.info(f"{self.client_socket.getsockname()} sent message: {message}")
 
@@ -129,6 +129,11 @@ class ServerConnectionManager:
 
     def send_list_rooms_message(self):
         message = "LIST_ROOMS"
+        self.client_socket.sendall(message.encode("utf-8"))
+        self.logger.info(f"{self.client_socket.getsockname()} sent message: {message}")
+
+    def send_request_info_private_message(self, username):
+        message = f"REQUEST_INFO_PRIVATE {username}"
         self.client_socket.sendall(message.encode("utf-8"))
         self.logger.info(f"{self.client_socket.getsockname()} sent message: {message}")
 

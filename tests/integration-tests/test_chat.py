@@ -41,9 +41,9 @@ class TestChat(unittest.TestCase):
         self.api.create_account(self.username1, self.password1)
         self.api2.create_account(self.username2, self.password2)
         self.api3.create_account(self.username3, self.password3)
-        self.api.login(self.username1, self.password1)
-        self.api2.login(self.username2, self.password2)
-        self.api3.login(self.username3, self.password3)
+        self.api.login(self.username1, self.password1, "12345")
+        self.api2.login(self.username2, self.password2, "12346")
+        self.api3.login(self.username3, self.password3, "12347")
 
     def tearDown(self):
         self.api.server_connection_manager.disconnect()

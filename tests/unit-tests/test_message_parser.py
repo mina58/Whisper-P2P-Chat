@@ -13,6 +13,8 @@ class TestMessageParser(unittest.TestCase):
         self.ip = "127.0.0.1"
         self.port = "12345"
         self.udp_port = "54321"
+        self.tcp_port = "12345"
+        self.username2 = "maria"
 
     def test_create_acc(self):
         message = f"CREATE_ACC {self.username} {self.password}"
@@ -34,11 +36,12 @@ class TestMessageParser(unittest.TestCase):
         self.assertEqual(content["status_code"], "0")
 
     def test_login(self):
-        message = f"LOGIN {self.username} {self.password}"
+        message = f"LOGIN {self.username} {self.password} {self.tcp_port}"
         content = MessageParser.parse_message(message)
         self.assertEqual(content["message_type"], "LOGIN")
         self.assertEqual(content["username"], self.username)
         self.assertEqual(content["password"], self.password)
+        self.assertEqual(content["tcp_port"], self.tcp_port)
 
     def test_login_response_succ(self):
         message = f"1 LOGIN_SUCC"
@@ -83,9 +86,9 @@ class TestMessageParser(unittest.TestCase):
         self.assertEqual(content["message_type"], "LIST_ROOMS")
 
     def test_rooms_list(self):
-        message = f"1 ROOM_LIST {' '.join(self.rooms)}"
+        message = f"1 ROOMS_LIST {' '.join(self.rooms)}"
         content = MessageParser.parse_message(message)
-        self.assertEqual(content["message_type"], "ROOM_LIST")
+        self.assertEqual(content["message_type"], "ROOMS_LIST")
         self.assertEqual(content["status_code"], "1")
         self.assertEqual(content["rooms"], self.rooms)
 
@@ -144,19 +147,19 @@ class TestMessageParser(unittest.TestCase):
         self.assertEqual(content["port"], self.port)
         self.assertEqual(content["room_id"], self.room_id)
 
-    def test_request_info_user(self):
-        message = f"REQUEST_INFO_PRIVATE {self.username} {self.ip} {self.port}"
+    def test_request_info_private(self):
+        message = f"REQUEST_INFO_PRIVATE {self.username2}"
         content = MessageParser.parse_message(message)
         self.assertEqual(content["message_type"], "REQUEST_INFO_PRIVATE")
-        self.assertEqual(content["username"], self.username)
-        self.assertEqual(content["ip"], self.ip)
-        self.assertEqual(content["port"], self.port)
+        self.assertEqual(content["username"], self.username2)
 
     def test_peer_info_user(self):
-        message = f"PEER_INFO_PRIVATE {self.username}"
+        message = f"1 PEER_INFO_PRIVATE {self.username} {self.ip} {self.tcp_port}"
         content = MessageParser.parse_message(message)
         self.assertEqual(content["message_type"], "PEER_INFO_PRIVATE")
         self.assertEqual(content["username"], self.username)
+        self.assertEqual(content["ip"], self.ip)
+        self.assertEqual(content["port"], self.tcp_port)
 
     def test_peer_info_room(self):
         message = f"PEER_INFO_ROOM {self.username} {self.room_id}"
@@ -198,14 +201,25 @@ class TestMessageParser(unittest.TestCase):
         self.assertEqual(content["status_code"], "0")
 
     def test_chat_request(self):
-        message = f"CHAT_REQUEST {self.username} {self.username}"
+        message = f"CHAT_REQUEST {self.username}"
         content = MessageParser.parse_message(message)
         self.assertEqual(content["message_type"], "CHAT_REQUEST")
-        self.assertEqual(content["sender"], self.username)
-        self.assertEqual(content["receiver"], self.username)
+        self.assertEqual(content["username"], self.username)
 
     def test_user_not_online(self):
-        message = f"0 USER_NOT_ONLINE"
+        message = f"0 USER_NOT_AVAILABLE"
         content = MessageParser.parse_message(message)
-        self.assertEqual(content["message_type"], "USER_NOT_ONLINE")
+        self.assertEqual(content["message_type"], "USER_NOT_AVAILABLE")
+        self.assertEqual(content["status_code"], "0")
+
+    def test_accept_chat(self):
+        message = f"1 ACCEPT_CHAT"
+        content = MessageParser.parse_message(message)
+        self.assertEqual(content["message_type"], "ACCEPT_CHAT")
+        self.assertEqual(content["status_code"], "1")
+
+    def test_reject_chat(self):
+        message = f"0 REJECT_CHAT"
+        content = MessageParser.parse_message(message)
+        self.assertEqual(content["message_type"], "REJECT_CHAT")
         self.assertEqual(content["status_code"], "0")

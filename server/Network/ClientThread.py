@@ -72,6 +72,8 @@ class ClientThread(threading.Thread):
                     self.leave_room(message)
                 elif message["message_type"] == "LIST_ROOMS":
                     self.list_rooms(message)
+                elif message["message_type"] == "REQUEST_INFO_PRIVATE":
+                    self.request_info_private(message)
 
             except socket.timeout:
                 continue
@@ -94,7 +96,7 @@ class ClientThread(threading.Thread):
                 self.username = message["username"]
                 response = "1 LOGIN_SUCC"
                 self.online_user_service.add_online_user(
-                    self.username, self.ip, self.port)
+                    self.username, self.ip, message["tcp_port"])
                 self.logger.info(f"User {self.username} logged in")
             else:
                 response = "0 AUTH_FAIL"
@@ -178,10 +180,25 @@ class ClientThread(threading.Thread):
             self.client_socket.sendall(response.encode("utf-8"))
             self.logger.info(f"Sent response to {self.ip}:{self.port}: {response}")
 
+    def request_info_private(self, message):
+        with self.lock:
+            response = ""
+
+            username = message["username"]
+            user_info = self.online_user_service.get_online_user(username)
+            if user_info is not None:
+                response = f"1 PEER_INFO_PRIVATE {user_info['username']} {user_info['ip']} {user_info['port']}"
+            else:
+                response = "0 USER_NOT_AVAILABLE"
+
+            self.client_socket.sendall(response.encode("utf-8"))
+            self.logger.info(f"Sent response to {self.ip}:{self.port}: {response}")
+
     def send_message(self, message):
         with self.lock:
             self.client_socket.sendall(message.encode("utf-8"))
             self.logger.info(f"Broadcast message to {self.ip}:{self.port}: {message}")
+
 
 
 

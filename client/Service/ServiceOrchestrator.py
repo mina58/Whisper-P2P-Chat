@@ -3,6 +3,7 @@ import time
 
 from client.Service.ServerAPI import ServerAPI
 from client.Service.ChatService import ChatService
+from client.Service.PrivateChatService import PrivateChatService
 from queue import Queue
 
 
@@ -19,7 +20,8 @@ class ServiceOrchestrator:
         self.udp_port = ""
         self.messages = []
         self.is_chatting = False
-        self.receiver_thread = None
+        self.private_chat_service = PrivateChatService("")
+        self.tcp_server_port = self.private_chat_service.tcp_server_port
 
     def create_account(self, username, password):
         if username == "" or password == "":
@@ -32,8 +34,9 @@ class ServiceOrchestrator:
     def login(self, username, password):
         if username == "" or password == "":
             return False
-        if self.server_api.login(username, password):
+        if self.server_api.login(username, password, self.tcp_server_port):
             self.username = username
+            self.private_chat_service.set_username(username)
             return True
         else:
             return False
@@ -96,3 +99,36 @@ class ServiceOrchestrator:
             self.server_api.logout()
 
         self.server_api.server_connection_manager.disconnect()
+        self.private_chat_service.close()
+
+    def request_private_chat(self, username):
+        user = self.server_api.request_peer_info(username)
+        if not user:
+            return False
+        address = (user["ip"], int(user["port"]))
+        return self.private_chat_service.start_private_chat(address)
+
+    def is_chat_requested(self):
+        return self.private_chat_service.is_chat_requested()
+
+    def get_requested_chat_username(self):
+        return self.private_chat_service.get_private_chat_request_username()
+
+    def accept_private_chat(self):
+        return self.private_chat_service.accept_private_chat()
+
+    def reject_private_chat(self):
+        self.private_chat_service.reject_private_chat()
+
+    def end_private_chat(self):
+        self.private_chat_service.end_private_chat()
+
+    def get_private_chat_messages(self):
+        return self.private_chat_service.get_messages()
+
+    def send_private_chat_message(self, message):
+        self.private_chat_service.send_message(message)
+
+    def get_is_connected_to_private_chat(self):
+        # checks if the other user has ended the chat
+        return self.private_chat_service.get_is_connected()
