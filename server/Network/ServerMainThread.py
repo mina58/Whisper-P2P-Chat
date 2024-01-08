@@ -2,6 +2,7 @@ import socket
 import logging
 import threading
 from server.Network.ConnectionManager import ConnectionManager
+from common.ErrorLogger import ErrorLogger
 
 
 class ServerMainThread(threading.Thread):
@@ -34,7 +35,7 @@ class ServerMainThread(threading.Thread):
 
         self.logger.info(f"Server listening on {self.ip}:{self.port}")
 
-        while self.is_running:
+        while self.is_running and self.server_socket is not None:
             try:
                 client_socket, client_address = self.server_socket.accept()
                 self.logger.info(f"Connection from {client_address}")
@@ -43,11 +44,12 @@ class ServerMainThread(threading.Thread):
                                                           client_socket)
 
             except Exception as e:
-                # Handle exceptions (e.g., if the server is stopped)
-                self.logger.error(f"Error: {e}")
+                ErrorLogger.get_logger().error(f"Error: {e}")
 
     def stop(self):
         self.is_running = False
+        # self.connection_manager.stop_all_threads()
         if self.server_socket:
             self.server_socket.close()
+            self.server_socket = None
             self.logger.info("Server stopped")
